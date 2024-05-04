@@ -1,10 +1,10 @@
 package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice;
 
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.Runner;
 import io.minio.errors.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.Runner;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;

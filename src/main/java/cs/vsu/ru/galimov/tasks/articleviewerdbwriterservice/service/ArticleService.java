@@ -1,55 +1,19 @@
 package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service;
 
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Article;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.repository.ArticleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
 
 import java.util.List;
-import java.util.Optional;
 
-@Service
-@Component
-public class ArticleService implements Served<Article> {
+public interface ArticleService {
+    Article insert(Article article);
 
-    private final ArticleRepository articleRepository;
+    List<Article> findAll();
 
-    @Autowired
-    private ArticleService(ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
+    void delete(String id);
 
-    @Override
-    public void insert(Article article) {
-        articleRepository.insert(article);
-    }
+    Article findById(String id);
 
-    @Override
-    public List<Article> findAll() {
-        return articleRepository.findAll();
-    }
+    Article findByUniqUIIDS3(String uniqUIIDS3);
 
-    @Override
-    public void delete(String id) {
-        Article archive = findById(id);
-        articleRepository.delete(archive);
-    }
-
-    @Override
-    public Article findById(String id) {
-        Optional<Article> optionalArchive = articleRepository.findById(id);
-        return optionalArchive.orElse(null);
-    }
-
-    @Override
-    public Article findByUniqUIIDS3(String uniqUIIDS3) {
-        return articleRepository.findByUniqUIIDS3(uniqUIIDS3);
-    }
-
-    @Override
-    public void update(Article object) {
-        articleRepository.save(object);
-    }
+    Article update(Article object);
 }

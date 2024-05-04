@@ -22,7 +22,6 @@ public class S3ListExtractor {
         this.template = template;
     }
 
-
     public List<String> extractS3List() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         List<String> names = new ArrayList<>();
         int RESTARTS = 10;
@@ -39,8 +38,6 @@ public class S3ListExtractor {
                 break;
             }
         }
-
         return names;
     }
-
 }

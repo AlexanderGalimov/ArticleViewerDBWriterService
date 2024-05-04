@@ -1,18 +1,25 @@
 package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.consumer;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.PdfSaver;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.ArticleMapper;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.AuthorMapper;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.minio.MinioTemplate;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Article;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.ArticleService;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Author;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.ArticleServiceImpl;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.AuthorServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -20,27 +27,47 @@ import java.util.UUID;
 @Component
 public class DatabaseWriter {
 
-    private final ArticleService service;
+    private final ArticleServiceImpl articleService;
+
+    private final AuthorServiceImpl authorService;
 
     private final MinioTemplate minioTemplate;
 
-    private final Gson gson;
+    private final ArticleMapper articleMapper;
+
+    private final AuthorMapper authorMapper;
+
+    private final PdfSaver pdfSaver;
+
+    private final Gson gson = new Gson();
 
     @Autowired
-    public DatabaseWriter(ArticleService service, MinioTemplate minioTemplate, Gson gson) {
-        this.service = service;
+    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver) {
+        this.articleService = service;
+        this.authorService = authorService;
         this.minioTemplate = minioTemplate;
-        this.gson = gson;
+        this.articleMapper = articleMapper;
+        this.authorMapper = authorMapper;
+        this.pdfSaver = pdfSaver;
     }
 
     @KafkaListener(topics = "${kafka.topic.name.for-input-topic}", containerFactory = "kafkaListenerContainerFactory", concurrency = "${kafka.topic.partitions.for-input-topic}")
     public void receive(String articleJson) {
         try {
-            String nameForS3 = UUID.randomUUID().toString();
+            JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
+            Article article = articleMapper.convertJsonToArticle(jsonObject);
+            List<Author> authors = authorMapper.convertJsonToAuthor(jsonObject);
 
-            Article article = convertJsonToArticle(articleJson);
+            article.setAuthorIds(new ArrayList<>());
+            for (Author author: authors){
+                Author savedAuthor = authorService.insert(author);
+                article.getAuthorIds().add(savedAuthor.getId());
+            }
+
+            String nameForS3 = UUID.randomUUID() + ".pdf";
+
             article.setUniqUIIDS3(nameForS3);
-            service.insert(article);
+            articleService.insert(article);
 
             String link = article.getPdfParams().getLink();
             byte[] serializedPdfParams = serializeS3Pdf(link);
@@ -53,19 +80,14 @@ public class DatabaseWriter {
         }
     }
 
-    private Article convertJsonToArticle(String articleJson) {
-        return gson.fromJson(articleJson, Article.class);
-    }
-
     public byte[] serializeS3Pdf(String s3PdfLink) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream)) {
-            objectOutputStream.writeObject(s3PdfLink);
-        }
-        catch (Exception e){
-            System.out.println("Error in serialize json listen" + e.getMessage());
-        }
-        return outputStream.toByteArray();
-    }
+        try {
+            InputStream pdfInputStream = pdfSaver.openPdfStream(s3PdfLink);
 
+            return IOUtils.toByteArray(pdfInputStream);
+        } catch (Exception e) {
+            System.out.println("Error in serialize pdf: " + e.getMessage());
+            return null;
+        }
+    }
 }

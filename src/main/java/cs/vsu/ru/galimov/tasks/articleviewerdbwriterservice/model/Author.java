@@ -2,6 +2,7 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -10,6 +11,7 @@ public class Author {
     @Id
     private String id;
 
+    @Indexed(unique = true)
     private String name;
 
     public Author(String name) {

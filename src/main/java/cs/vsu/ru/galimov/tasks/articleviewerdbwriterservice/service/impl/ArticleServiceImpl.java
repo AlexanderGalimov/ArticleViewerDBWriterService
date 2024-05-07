@@ -52,4 +52,9 @@ public class ArticleServiceImpl implements ArticleService{
     public Article update(Article object) {
         return articleRepository.save(object);
     }
+
+    @Override
+    public Article findByPdfParamsTitle(String title) {
+        return articleRepository.findByPdfParamsTitle(title);
+    }
 }

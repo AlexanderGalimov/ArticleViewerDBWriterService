@@ -16,4 +16,6 @@ public interface ArticleService {
     Article findByUniqUIIDS3(String uniqUIIDS3);
 
     Article update(Article object);
+
+    Article findByPdfParamsTitle(String title);
 }

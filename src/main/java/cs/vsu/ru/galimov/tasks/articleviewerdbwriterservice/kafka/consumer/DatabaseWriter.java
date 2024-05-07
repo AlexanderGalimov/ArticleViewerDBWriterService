@@ -18,9 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 @Slf4j
@@ -57,24 +55,30 @@ public class DatabaseWriter {
             JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
             Article article = articleMapper.convertJsonToArticle(jsonObject);
             List<Author> authors = authorMapper.convertJsonToAuthor(jsonObject);
+            if(articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null){
+                article.setAuthorIds(new ArrayList<>());
+                for (Author author: authors){
+                    Author authorInBase = authorService.findByName(author.getName());
+                    if(authorInBase != null){
+                        article.getAuthorIds().add(authorInBase.getId());
+                    }
+                    else{
+                        Author savedAuthor = authorService.insert(author);
+                        article.getAuthorIds().add(savedAuthor.getId());
+                    }
+                }
 
-            article.setAuthorIds(new ArrayList<>());
-            for (Author author: authors){
-                Author savedAuthor = authorService.insert(author);
-                article.getAuthorIds().add(savedAuthor.getId());
+                String nameForS3 = UUID.randomUUID() + ".pdf";
+
+                article.setUniqUIIDS3(nameForS3);
+                articleService.insert(article);
+
+                String link = article.getPdfParams().getLink();
+                byte[] serializedPdfParams = serializeS3Pdf(link);
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(serializedPdfParams);
+
+                minioTemplate.uploadFile(nameForS3, inputStream);
             }
-
-            String nameForS3 = UUID.randomUUID() + ".pdf";
-
-            article.setUniqUIIDS3(nameForS3);
-            articleService.insert(article);
-
-            String link = article.getPdfParams().getLink();
-            byte[] serializedPdfParams = serializeS3Pdf(link);
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(serializedPdfParams);
-
-            minioTemplate.uploadFile(nameForS3, inputStream);
-
         } catch (Exception e) {
             System.out.println("Error in kafka listen" + e.getMessage());
         }

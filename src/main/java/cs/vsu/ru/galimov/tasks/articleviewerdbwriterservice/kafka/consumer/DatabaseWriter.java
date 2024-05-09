@@ -3,6 +3,8 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.consumer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.PdfSaver;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.producer.S3ProcessingProducer;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.topic.S3ProcessingTopic;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.ArticleMapper;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.AuthorMapper;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.minio.MinioTemplate;
@@ -39,14 +41,20 @@ public class DatabaseWriter {
 
     private final Gson gson = new Gson();
 
+    private final S3ProcessingProducer producer;
+
+    private final S3ProcessingTopic topic;
+
     @Autowired
-    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver) {
+    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver, S3ProcessingProducer producer, S3ProcessingTopic topic) {
         this.articleService = service;
         this.authorService = authorService;
         this.minioTemplate = minioTemplate;
         this.articleMapper = articleMapper;
         this.authorMapper = authorMapper;
         this.pdfSaver = pdfSaver;
+        this.producer = producer;
+        this.topic = topic;
     }
 
     @KafkaListener(topics = "${kafka.topic.name.for-input-topic}", containerFactory = "kafkaListenerContainerFactory", concurrency = "${kafka.topic.partitions.for-input-topic}")
@@ -78,6 +86,8 @@ public class DatabaseWriter {
                 ByteArrayInputStream inputStream = new ByteArrayInputStream(serializedPdfParams);
 
                 minioTemplate.uploadFile(nameForS3, inputStream);
+
+                producer.send(topic.getTopicName(), nameForS3);
             }
         } catch (Exception e) {
             System.out.println("Error in kafka listen" + e.getMessage());

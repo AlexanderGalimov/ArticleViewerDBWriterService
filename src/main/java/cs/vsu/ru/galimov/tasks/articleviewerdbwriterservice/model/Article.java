@@ -21,6 +21,8 @@ public class Article {
 
     private DepartmentMagazine departmentMagazine;
 
+    private Archive archive;
+
     private DateArchive dateArchive;
 
     private PDFParams pdfParams;

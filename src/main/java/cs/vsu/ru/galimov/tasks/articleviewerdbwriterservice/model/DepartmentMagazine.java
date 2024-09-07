@@ -8,12 +8,9 @@ public class DepartmentMagazine {
 
     private String url;
 
-    private String type;
-
-    public DepartmentMagazine(String name, String url, String type) {
+    public DepartmentMagazine(String name, String url) {
         this.name = name;
         this.url = url;
-        this.type = type;
     }
 
     public DepartmentMagazine() {

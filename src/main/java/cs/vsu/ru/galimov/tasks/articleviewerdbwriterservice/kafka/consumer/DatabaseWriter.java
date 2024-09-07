@@ -87,7 +87,7 @@ public class DatabaseWriter {
 
                 minioTemplate.uploadFile(nameForS3, inputStream);
 
-                producer.send(topic.getTopicName(), nameForS3);
+                //producer.send(topic.getTopicName(), nameForS3);
             }
         } catch (Exception e) {
             System.out.println("Error in kafka listen" + e.getMessage());

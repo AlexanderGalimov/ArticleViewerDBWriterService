@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -31,14 +30,17 @@ public class Article {
 
     private String fullText;
 
+    private String summary;
+
     private String uniqUIIDS3;
 
-    public Article(Magazine magazine, DepartmentMagazine departmentMagazine, DateArchive dateArchive, PDFParams pdfParams, String fullText) {
+    public Article(Magazine magazine, DepartmentMagazine departmentMagazine, DateArchive dateArchive, PDFParams pdfParams, String fullText, String summary) {
         this.magazine = magazine;
         this.departmentMagazine = departmentMagazine;
         this.dateArchive = dateArchive;
         this.pdfParams = pdfParams;
         this.fullText = fullText;
+        this.summary = summary;
     }
 
     public Article() {

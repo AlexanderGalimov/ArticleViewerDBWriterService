@@ -63,7 +63,8 @@ public class DatabaseWriter {
             JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
             Article article = articleMapper.convertJsonToArticle(jsonObject);
             List<Author> authors = authorMapper.convertJsonToAuthor(jsonObject);
-            if(articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null){
+            if(articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null
+                    && !Objects.equals(article.getPdfParams().getTitle(), "ПРАВИЛА ПУБЛИКАЦИИ ДЛЯ АВТОРОВ")){
                 article.setAuthorIds(new ArrayList<>());
                 for (Author author: authors){
                     Author authorInBase = authorService.findByName(author.getName());
@@ -87,7 +88,7 @@ public class DatabaseWriter {
 
                 minioTemplate.uploadFile(nameForS3, inputStream);
 
-                //producer.send(topic.getTopicName(), nameForS3);
+                producer.send(topic.getTopicName(), nameForS3);
             }
         } catch (Exception e) {
             System.out.println("Error in kafka listen" + e.getMessage());

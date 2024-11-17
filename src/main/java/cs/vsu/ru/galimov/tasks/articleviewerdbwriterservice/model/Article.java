@@ -30,17 +30,19 @@ public class Article {
 
     private String fullText;
 
-    private String summary;
+    private List<String> keywords;
+
+    private String annotation;
 
     private String uniqUIIDS3;
 
-    public Article(Magazine magazine, DepartmentMagazine departmentMagazine, DateArchive dateArchive, PDFParams pdfParams, String fullText, String summary) {
+    public Article(Magazine magazine, DepartmentMagazine departmentMagazine, DateArchive dateArchive, PDFParams pdfParams, String fullText, String annotation) {
         this.magazine = magazine;
         this.departmentMagazine = departmentMagazine;
         this.dateArchive = dateArchive;
         this.pdfParams = pdfParams;
         this.fullText = fullText;
-        this.summary = summary;
+        this.annotation = annotation;
     }
 
     public Article() {

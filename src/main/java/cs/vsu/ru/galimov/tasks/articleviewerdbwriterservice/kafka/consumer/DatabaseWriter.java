@@ -14,6 +14,8 @@ import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.Article
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.AuthorServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -45,6 +47,8 @@ public class DatabaseWriter {
 
     private final S3ProcessingTopic topic;
 
+    private final Logger logger = LoggerFactory.getLogger(DatabaseWriter.class);
+
     @Autowired
     public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver, S3ProcessingProducer producer, S3ProcessingTopic topic) {
         this.articleService = service;
@@ -63,15 +67,13 @@ public class DatabaseWriter {
             JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
             Article article = articleMapper.convertJsonToArticle(jsonObject);
             List<Author> authors = authorMapper.convertJsonToAuthor(jsonObject);
-            if(articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null
-                    && !Objects.equals(article.getPdfParams().getTitle(), "ПРАВИЛА ПУБЛИКАЦИИ ДЛЯ АВТОРОВ")){
+            if (articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null && !Objects.equals(article.getPdfParams().getTitle(), "ПРАВИЛА ПУБЛИКАЦИИ ДЛЯ АВТОРОВ")) {
                 article.setAuthorIds(new ArrayList<>());
-                for (Author author: authors){
+                for (Author author : authors) {
                     Author authorInBase = authorService.findByName(author.getName());
-                    if(authorInBase != null){
+                    if (authorInBase != null) {
                         article.getAuthorIds().add(authorInBase.getId());
-                    }
-                    else{
+                    } else {
                         Author savedAuthor = authorService.insert(author);
                         article.getAuthorIds().add(savedAuthor.getId());
                     }
@@ -91,7 +93,7 @@ public class DatabaseWriter {
                 producer.send(topic.getTopicName(), nameForS3);
             }
         } catch (Exception e) {
-            System.out.println("Error in kafka listen" + e.getMessage());
+            logger.error("Error in kafka listen" + e.getMessage());
         }
     }
 
@@ -101,7 +103,7 @@ public class DatabaseWriter {
 
             return IOUtils.toByteArray(pdfInputStream);
         } catch (Exception e) {
-            System.out.println("Error in serialize pdf: " + e.getMessage());
+            logger.error("Error in serialize pdf: " + e.getMessage());
             return null;
         }
     }

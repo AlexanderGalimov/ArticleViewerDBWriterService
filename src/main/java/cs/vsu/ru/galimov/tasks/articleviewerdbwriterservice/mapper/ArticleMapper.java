@@ -34,7 +34,7 @@ public class ArticleMapper {
         article.setDateArchive(new DateArchive(dateArchiveInfo, dateArchiveLink));
         article.setPdfParams(new PDFParams(pdfLink, pdfTitle));
         article.setFullText("");
-        article.setSummary("");
+        article.setAnnotation("");
         return article;
     }
 }

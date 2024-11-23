@@ -23,7 +23,7 @@ public class InactivityChecker {
     @Scheduled(fixedDelay = 60000)
     public void checkInactivity() {
         if (activityMonitor.isInactive(inactivityTime)) {
-            System.out.println("Service has been idle for. Shutting down...");
+            System.out.println("Shutting down...");
             SpringApplication.exit(applicationContext, () -> 0);
         }
     }

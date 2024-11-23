@@ -2,7 +2,8 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.PdfSaver;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.pdf.PdfSaver;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.activity.ActivityMonitor;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.producer.S3ProcessingProducer;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.topic.S3ProcessingTopic;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.ArticleMapper;
@@ -49,8 +50,10 @@ public class DatabaseWriter {
 
     private final Logger logger = LoggerFactory.getLogger(DatabaseWriter.class);
 
+    private final ActivityMonitor monitor;
+
     @Autowired
-    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver, S3ProcessingProducer producer, S3ProcessingTopic topic) {
+    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver, S3ProcessingProducer producer, S3ProcessingTopic topic, ActivityMonitor monitor) {
         this.articleService = service;
         this.authorService = authorService;
         this.minioTemplate = minioTemplate;
@@ -59,6 +62,7 @@ public class DatabaseWriter {
         this.pdfSaver = pdfSaver;
         this.producer = producer;
         this.topic = topic;
+        this.monitor = monitor;
     }
 
     @KafkaListener(topics = "${kafka.topic.name.for-input-topic}", containerFactory = "kafkaListenerContainerFactory", concurrency = "${kafka.topic.partitions.for-input-topic}")
@@ -67,6 +71,7 @@ public class DatabaseWriter {
             JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
             Article article = articleMapper.convertJsonToArticle(jsonObject);
             List<Author> authors = authorMapper.convertJsonToAuthor(jsonObject);
+
             if (articleService.findByPdfParamsTitle(article.getPdfParams().getTitle()) == null && !Objects.equals(article.getPdfParams().getTitle(), "ПРАВИЛА ПУБЛИКАЦИИ ДЛЯ АВТОРОВ")) {
                 article.setAuthorIds(new ArrayList<>());
                 for (Author author : authors) {
@@ -91,6 +96,8 @@ public class DatabaseWriter {
                 minioTemplate.uploadFile(nameForS3, inputStream);
 
                 producer.send(topic.getTopicName(), nameForS3);
+
+                monitor.updateLastActivity();
             }
         } catch (Exception e) {
             logger.error("Error in kafka listen" + e.getMessage());

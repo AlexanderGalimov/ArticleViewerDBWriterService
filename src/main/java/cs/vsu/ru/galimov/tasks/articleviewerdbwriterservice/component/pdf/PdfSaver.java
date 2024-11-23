@@ -1,4 +1,4 @@
-package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component;
+package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.pdf;
 
 import org.springframework.stereotype.Component;
 

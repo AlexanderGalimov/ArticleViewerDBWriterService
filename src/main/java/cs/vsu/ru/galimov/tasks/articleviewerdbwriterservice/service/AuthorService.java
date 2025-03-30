@@ -1,11 +1,9 @@
 package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service;
 
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Author;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface AuthorService {
     Author insert(Author author);
 

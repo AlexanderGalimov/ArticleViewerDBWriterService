@@ -3,24 +3,16 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Article;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.repository.ArticleRepository;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.ArticleService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-
 import java.util.List;
-import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
-@Component
 public class ArticleServiceImpl implements ArticleService{
 
     private final ArticleRepository articleRepository;
-
-    @Autowired
-    private ArticleServiceImpl(ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
 
     @Override
     public Article insert(Article article) {

@@ -2,13 +2,21 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Document(collection = "Articles")
 @JsonDeserialize
 @JsonSerialize
@@ -32,20 +40,12 @@ public class Article {
 
     private List<String> keywords;
 
+    private List<String> lpKeywords;
+
+    private String summary;
+
     private String annotation;
 
     private String uniqUIIDS3;
-
-    public Article(Magazine magazine, DepartmentMagazine departmentMagazine, DateArchive dateArchive, PDFParams pdfParams, String fullText, String annotation) {
-        this.magazine = magazine;
-        this.departmentMagazine = departmentMagazine;
-        this.dateArchive = dateArchive;
-        this.pdfParams = pdfParams;
-        this.fullText = fullText;
-        this.annotation = annotation;
-    }
-
-    public Article() {
-    }
 }
 

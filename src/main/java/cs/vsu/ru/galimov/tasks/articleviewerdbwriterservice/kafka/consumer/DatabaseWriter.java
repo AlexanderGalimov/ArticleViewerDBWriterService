@@ -2,32 +2,32 @@ package cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.pdf.PdfSaver;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.activity.ActivityMonitor;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.component.PdfSaver;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.producer.S3ProcessingProducer;
-import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.kafka.topic.S3ProcessingTopic;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.ArticleMapper;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.mapper.AuthorMapper;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.minio.MinioTemplate;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Article;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.model.Author;
+import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.properties.KafkaS3TopicProperties;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.ArticleServiceImpl;
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.service.impl.AuthorServiceImpl;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DatabaseWriter {
 
     private final ArticleServiceImpl articleService;
@@ -46,26 +46,11 @@ public class DatabaseWriter {
 
     private final S3ProcessingProducer producer;
 
-    private final S3ProcessingTopic topic;
+    private final KafkaS3TopicProperties s3TopicProperties;
 
-    private final Logger logger = LoggerFactory.getLogger(DatabaseWriter.class);
-
-    private final ActivityMonitor monitor;
-
-    @Autowired
-    public DatabaseWriter(ArticleServiceImpl service, AuthorServiceImpl authorService, MinioTemplate minioTemplate, ArticleMapper articleMapper, AuthorMapper authorMapper, PdfSaver pdfSaver, S3ProcessingProducer producer, S3ProcessingTopic topic, ActivityMonitor monitor) {
-        this.articleService = service;
-        this.authorService = authorService;
-        this.minioTemplate = minioTemplate;
-        this.articleMapper = articleMapper;
-        this.authorMapper = authorMapper;
-        this.pdfSaver = pdfSaver;
-        this.producer = producer;
-        this.topic = topic;
-        this.monitor = monitor;
-    }
-
-    @KafkaListener(topics = "${kafka.topic.name.for-input-topic}", containerFactory = "kafkaListenerContainerFactory", concurrency = "${kafka.topic.partitions.for-input-topic}")
+    @KafkaListener(topics = "${kafka.input-topic.name}",
+            containerFactory = "kafkaListenerContainerFactory",
+            concurrency = "${kafka.input-topic.partitions}")
     public void receive(String articleJson) {
         try {
             JsonObject jsonObject = gson.fromJson(articleJson, JsonObject.class);
@@ -95,12 +80,10 @@ public class DatabaseWriter {
 
                 minioTemplate.uploadFile(nameForS3, inputStream);
 
-                producer.send(topic.getTopicName(), nameForS3);
-
-                monitor.updateLastActivity();
+                producer.send(s3TopicProperties.getName(), nameForS3);
             }
         } catch (Exception e) {
-            logger.error("Error in kafka listen" + e.getMessage());
+            log.error("Error in kafka listen" + e.getMessage());
         }
     }
 
@@ -110,7 +93,7 @@ public class DatabaseWriter {
 
             return IOUtils.toByteArray(pdfInputStream);
         } catch (Exception e) {
-            logger.error("Error in serialize pdf: " + e.getMessage());
+            log.error("Error in serialize pdf: " + e.getMessage());
             return null;
         }
     }

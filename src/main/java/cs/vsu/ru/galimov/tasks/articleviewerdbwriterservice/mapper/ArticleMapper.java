@@ -35,6 +35,7 @@ public class ArticleMapper {
         article.setPdfParams(new PDFParams(pdfLink, pdfTitle));
         article.setFullText("");
         article.setAnnotation("");
+        article.setSummary("");
         return article;
     }
 }

@@ -1,0 +1,60 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: CourseworkDB
+
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    template:
+      default-topic: input
+
+server:
+  port: 9201
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+minio:
+  url: http://127.0.0.1:9000
+  access-key: alexander
+  secret-key: 18520655Minio
+  bucket-name: my-bucket
+
+kafka:
+  consumer:
+    group-id: inputGroup
+    auto-commit: true
+    offset-reset: latest
+    session-timeout: 6000
+    auto-commit-interval: 100
+    concurrency: 3
+  producer:
+    retries: 0
+    batch-size: 4096
+    linger: 1
+    buffer-memory: 40960
+
+  input-topic:
+    name: input
+    partitions: 3
+  s3-topic:
+    name: s3Topic
+    partitions: 3
+    replication-factor: 1

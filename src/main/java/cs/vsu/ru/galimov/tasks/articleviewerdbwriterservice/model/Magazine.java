@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class Magazine {
+
     private String name;
+
     private String link;
 }

@@ -23,7 +23,6 @@ public class S3ProcessingProducerConfig {
 
     private final KafkaProducerProperties kafkaProducerProperties;
 
-
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBaseProperties.getBootstrapServers());

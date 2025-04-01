@@ -36,11 +36,6 @@ public class ArticleServiceImpl implements ArticleService{
     }
 
     @Override
-    public Article findByUniqUIIDS3(String uniqUIIDS3) {
-        return articleRepository.findByUniqUIIDS3(uniqUIIDS3);
-    }
-
-    @Override
     public Article update(Article object) {
         return articleRepository.save(object);
     }

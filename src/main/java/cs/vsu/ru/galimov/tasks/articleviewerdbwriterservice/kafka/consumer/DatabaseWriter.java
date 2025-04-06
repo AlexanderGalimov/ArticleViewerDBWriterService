@@ -83,7 +83,8 @@ public class DatabaseWriter {
                 producer.send(s3TopicProperties.getName(), nameForS3);
             }
         } catch (Exception e) {
-            log.error("Error in kafka listen" + e.getMessage());
+            log.error("Error in kafka listen " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

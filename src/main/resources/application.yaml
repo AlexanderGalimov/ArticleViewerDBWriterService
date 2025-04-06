@@ -41,7 +41,7 @@ kafka:
   consumer:
     group-id: inputGroup
     auto-commit: true
-    offset-reset: latest
+    offset-reset: earliest
     session-timeout: 6000
     auto-commit-interval: 100
     concurrency: 3

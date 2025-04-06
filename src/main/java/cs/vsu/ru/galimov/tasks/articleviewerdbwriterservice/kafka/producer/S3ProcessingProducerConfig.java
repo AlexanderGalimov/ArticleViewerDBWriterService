@@ -4,7 +4,6 @@ import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.properties.KafkaBase
 import cs.vsu.ru.galimov.tasks.articleviewerdbwriterservice.properties.KafkaProducerProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,7 @@ public class S3ProcessingProducerConfig {
         props.put(ProducerConfig.LINGER_MS_CONFIG, kafkaProducerProperties.getLinger());
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kafkaProducerProperties.getBufferMemory());
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return props;
     }
 

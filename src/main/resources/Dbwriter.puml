@@ -1,0 +1,53 @@
+@startuml
+skinparam SequenceMessageSpacing 25
+skinparam ParticipantPadding 50
+skinparam LifelineStrategy solid
+
+participant "DBWriterService" as DBWriter
+participant "Kafka" as Kafka
+participant "MongoDB" as MongoDB
+participant "MinIO" as MinIO
+
+activate Kafka
+Kafka -> DBWriter:  Статья (JSON)
+activate DBWriter
+
+DBWriter -> MongoDB:  Запрос, новая ли статья
+activate MongoDB
+
+alt Статья обрабатывается сервисом впервые?
+
+    MongoDB --> DBWriter:  Статья новая
+
+    alt Обработка статьи
+
+        DBWriter -> MongoDB:  Сохранение метаданных
+        MongoDB --> DBWriter:  Подтверждение
+
+        DBWriter -> MinIO:  Загрузить PDF
+        activate MinIO
+        MinIO --> DBWriter:  Получение uniqueS3Name
+
+        DBWriter -> Kafka:  Отправка в S3 Topic
+        Kafka --> DBWriter:  ACK
+
+    else Ошибка обработки
+        MinIO --> DBWriter:  Ошибка загрузки
+        deactivate MinIO
+        DBWriter -> Kafka:  Send to DLQ
+
+    end
+
+else Дубликат
+
+    MongoDB --> DBWriter:  Уже обработана
+    deactivate MongoDB
+
+    DBWriter -> Kafka: Отправка в S3 Topic
+    Kafka --> DBWriter: ACK
+    deactivate Kafka
+
+end
+
+deactivate DBWriter
+@enduml

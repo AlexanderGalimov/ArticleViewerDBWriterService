@@ -24,7 +24,7 @@ alt Статья обрабатывается сервисом впервые?
         DBWriter -> MongoDB:  Сохранение метаданных
         MongoDB --> DBWriter:  Подтверждение
 
-        DBWriter -> MinIO:  Загрузить PDF
+        DBWriter -> MinIO:  Загрузить PDF в MinIO
         activate MinIO
         MinIO --> DBWriter:  Получение uniqueS3Name
 
@@ -34,7 +34,7 @@ alt Статья обрабатывается сервисом впервые?
     else Ошибка обработки
         MinIO --> DBWriter:  Ошибка загрузки
         deactivate MinIO
-        DBWriter -> Kafka:  Send to DLQ
+        DBWriter -> DBWriter:  Логирование ошибки
 
     end
 

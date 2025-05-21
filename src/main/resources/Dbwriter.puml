@@ -9,7 +9,7 @@ participant "MongoDB" as MongoDB
 participant "MinIO" as MinIO
 
 activate Kafka
-Kafka -> DBWriter:  Статья (JSON)
+Kafka -> DBWriter:  Статья
 activate DBWriter
 
 DBWriter -> MongoDB:  Запрос, новая ли статья
